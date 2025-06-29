@@ -86,7 +86,7 @@ def delete_blog(blog_id):
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
     data = request.json
-    if data.get('passcode') == ADMIN_PASSCODE:
+    if data.get('passcode') == os.getenv("ADMIN_PASSCODE"):
         session['admin'] = True
         return jsonify({"message": "Logged in"})
     return jsonify({"error": "Invalid passcode"}), 401
