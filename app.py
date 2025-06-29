@@ -10,8 +10,8 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret")
 CORS(app, supports_credentials=True, origins=[
-    "http://localhost:5173",  # Vite dev
-    "https://lifeblogs.onrender.com"
+    "http://localhost:5173",
+    "https://your-site.onrender.com"
 ])
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blogs.db'
@@ -19,10 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-ADMIN_PASSCODE = os.getenv("ADMIN_PASSCODE", "1234")
-
-@app.before_first_request
-def create_tables():
+with app.app_context():
     db.create_all()
 
 @app.route('/api/blogs')
