@@ -11,7 +11,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret")
 CORS(app, supports_credentials=True, origins=[
     "http://localhost:5173",
-    "https://lifeblogs.onrender.com"
+    "https://lifebulogs.onrender.com",
+    "http://lifebulogs.onrender.com"
 ])
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blogs.db'
