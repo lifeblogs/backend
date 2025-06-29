@@ -93,6 +93,7 @@ def admin_login():
 
 @app.route('/api/admin/protected')
 def protected():
+    print("SESSION KEYS:", dict(session))
     if session.get('admin'):
         return jsonify({"message": "Authorized"})
     return jsonify({"error": "Unauthorized"}), 401
