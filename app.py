@@ -1,9 +1,8 @@
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
-from models import db, Blog, slugify
-from datetime import datetime
-import os
+from models import db, Blog
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
@@ -11,81 +10,72 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret")
 app.config.update(
-    SESSION_COOKIE_SAMESITE='None',
-    SESSION_COOKIE_SECURE=True
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=True,
+    SQLALCHEMY_DATABASE_URI='sqlite:///blogs.db',
+    SQLALCHEMY_TRACK_MODIFICATIONS=False
 )
 
 CORS(app, supports_credentials=True, origins=[
+    "http://localhost:5173",
     "https://lifebulogs.onrender.com"
 ])
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blogs.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
-@app.route('/api/blogs')
+
+
+@app.route('/api/blogs', methods=['GET'])
 def get_blogs():
     category = request.args.get('category')
     blogs = Blog.query.filter_by(category=category).all() if category else Blog.query.all()
-    return jsonify([
-        {
-            "id": blog.id,
-            "title": blog.title,
-            "slug": blog.slug,
-            "category": blog.category,
-            "date_created": blog.date_created.isoformat()
-        }
-        for blog in blogs
-    ])
+    return jsonify([blog.to_dict() for blog in blogs])
 
-@app.route('/api/blogs/<slug>')
+
+@app.route('/api/blogs/<slug>', methods=['GET'])
 def get_blog(slug):
     blog = Blog.query.filter_by(slug=slug).first_or_404()
-    return jsonify({
-        "title": blog.title,
-        "slug": blog.slug,
-        "category": blog.category,
-        "content": blog.content,
-        "date_created": blog.date_created.isoformat()
-    })
+    return jsonify(blog.to_dict(full=True))
+
 
 @app.route('/api/blogs', methods=['POST'])
 def create_blog():
     if not session.get('admin'):
         return jsonify({"error": "Unauthorized"}), 401
+
     data = request.json
-    title = data['title']
-    slug = slugify(title)
-    blog = Blog(title=title, slug=slug, category=data['category'], content=data['content'])
+    blog = Blog(title=data['title'], category=data['category'], content=data['content'])
     db.session.add(blog)
     db.session.commit()
-    return jsonify({"message": "Blog created", "slug": slug})
+    return jsonify({"message": "Blog created", "slug": blog.slug})
+
 
 @app.route('/api/blogs/<int:blog_id>', methods=['PUT'])
 def update_blog(blog_id):
     if not session.get('admin'):
         return jsonify({"error": "Unauthorized"}), 401
+
     blog = Blog.query.get_or_404(blog_id)
     data = request.json
-    blog.title = data['title']
-    blog.category = data['category']
-    blog.content = data['content']
-    blog.slug = slugify(blog.title)
+    blog.update(title=data['title'], category=data['category'], content=data['content'])
     db.session.commit()
     return jsonify({"message": "Blog updated"})
+
 
 @app.route('/api/blogs/<int:blog_id>', methods=['DELETE'])
 def delete_blog(blog_id):
     if not session.get('admin'):
         return jsonify({"error": "Unauthorized"}), 401
+
     blog = Blog.query.get_or_404(blog_id)
     db.session.delete(blog)
     db.session.commit()
     return jsonify({"message": "Blog deleted"})
+
+
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
@@ -95,20 +85,19 @@ def admin_login():
         return jsonify({"message": "Logged in"})
     return jsonify({"error": "Invalid passcode"}), 401
 
+
 @app.route('/api/admin/protected')
 def protected():
     if session.get('admin'):
         return jsonify({"message": "Authorized"})
     return jsonify({"error": "Unauthorized"}), 401
 
+
 @app.route('/api/admin/logout')
 def logout():
     session.pop('admin', None)
     return jsonify({"message": "Logged out"})
 
-@app.route('/api/test-session')
-def test_session():
-    return jsonify({"admin": session.get("admin", False)})
 
 
 if __name__ == '__main__':
