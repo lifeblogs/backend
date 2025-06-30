@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret")
 app.config.update(
-    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SAMESITE='None',
     SESSION_COOKIE_SECURE=True,
     SQLALCHEMY_DATABASE_URI='sqlite:///blogs.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False
