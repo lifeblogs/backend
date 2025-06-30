@@ -8,6 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=False
+)
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret")
 CORS(app, supports_credentials=True, origins=[
     "http://localhost:5173",
@@ -93,7 +97,6 @@ def admin_login():
 
 @app.route('/api/admin/protected')
 def protected():
-    print("SESSION KEYS:", dict(session))
     if session.get('admin'):
         return jsonify({"message": "Authorized"})
     return jsonify({"error": "Unauthorized"}), 401
@@ -102,6 +105,11 @@ def protected():
 def logout():
     session.pop('admin', None)
     return jsonify({"message": "Logged out"})
+
+@app.route('/api/test-session')
+def test_session():
+    return jsonify({"admin": session.get("admin", False)})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
