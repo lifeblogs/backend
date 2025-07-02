@@ -32,7 +32,7 @@ with app.app_context():
 def get_blogs():
     category = request.args.get('category')
     blogs = Blog.query.filter_by(category=category).all() if category else Blog.query.all()
-    return jsonify([blog.to_dict() for blog in blogs])
+    return jsonify([blog.to_dict(full=True) for blog in blogs])
 
 
 @app.route('/api/blogs/<slug>', methods=['GET'])
