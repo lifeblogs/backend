@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from models import db, Blog
 from dotenv import load_dotenv
+from sqlalchemy import desc
 import os
 
 load_dotenv()
@@ -25,7 +26,6 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
-
 
 
 @app.route('/api/blogs', methods=['GET'])
@@ -74,6 +74,25 @@ def delete_blog(blog_id):
     db.session.delete(blog)
     db.session.commit()
     return jsonify({"message": "Blog deleted"})
+
+@app.route('/api/blogs/thisweek', methods=['GET'])
+def latest_blogs_by_category():
+    categories = db.session.query(Blog.category).distinct()
+    result = []
+
+    for category_obj in categories:
+        category = category_obj.category
+        latest_blog = Blog.query.filter_by(category=category).order_by(desc(Blog.date_created)).first()
+        if latest_blog:
+            result.append({
+                "category": category,
+                "title": latest_blog.title,
+                "slug": latest_blog.slug,
+                "link": f"/blogs/{latest_blog.slug}",
+                "content": latest_blog.content
+            })
+
+    return jsonify(result)
 
 
 
