@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
-from models import db, Blog
+from models import db, Blog, Subscriber
 from dotenv import load_dotenv
 from sqlalchemy import desc
 import os
@@ -117,6 +117,32 @@ def logout():
     session.pop('admin', None)
     return jsonify({"message": "Logged out"})
 
+@app.route("/api/subscribe", methods=["POST"])
+def subscribe():
+    data = request.get_json()
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    if Subscriber.query.filter_by(email=email).first():
+        return jsonify({"message": "Already subscribed"}), 200
+
+    subscriber = Subscriber(email=email)
+    db.session.add(subscriber)
+    db.session.commit()
+    return jsonify({"message": "Subscribed successfully!"}), 201
+
+@app.route("/api/subscribers", methods=["GET"])
+def subscribers():
+    subscribers = Subscriber.query.all()
+    return jsonify([
+        {
+            "id": s.id,
+            "email": s.email,
+            "subscribed_at": s.subscribed_at.isoformat()
+        } for s in subscribers
+    ])
 
 
 if __name__ == '__main__':

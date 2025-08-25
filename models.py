@@ -41,3 +41,9 @@ class Blog(db.Model):
     @staticmethod
     def slugify(title):
         return re.sub(r'\W+', '-', title.lower()).strip('-')
+
+class Subscriber(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
