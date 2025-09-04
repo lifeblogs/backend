@@ -18,9 +18,11 @@ app.config.update(
 )
 
 CORS(app, supports_credentials=True, origins=[
+    "http://192.168.1.3:5173",
     "http://localhost:5173",
     "https://lifebulogs.onrender.com"
 ])
+
 
 db.init_app(app)
 
@@ -105,11 +107,11 @@ def admin_login():
     return jsonify({"error": "Invalid passcode"}), 401
 
 
-@app.route('/api/admin/protected')
+@app.route("/api/admin/protected")
 def protected():
-    if session.get('admin'):
+    if session.get("admin"):
         return jsonify({"message": "Authorized"})
-    return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"message": "Unauthorized"}), 401
 
 
 @app.route('/api/admin/logout')
