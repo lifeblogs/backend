@@ -18,7 +18,7 @@ app.config.update(
 )
 
 CORS(app, supports_credentials=True, origins=[
-    "http://192.168.1.6:5173",
+    "http://192.168.1.2:5173",
     "http://localhost:5173",
     "https://lifebulogs.onrender.com"
 ])
@@ -148,4 +148,4 @@ def subscribers():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000)
